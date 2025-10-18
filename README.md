@@ -34,8 +34,6 @@ Now with **dynamic rainbow gradients**, smooth trailing, and a visually impressi
 | TRIG | Digital pin on ESP32 (e.g., GPIO 25) |
 | ECHO | Digital pin on ESP32 (e.g., GPIO 26) |
 
-> ⚡ Note: The HC-SR04-33 is **fully compatible with 3.3V**, so you can connect the ECHO pin directly to the ESP32 without any voltage divider.
-
 ---
 
 ## **Example Code with Rainbow Effect**
