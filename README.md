@@ -45,53 +45,75 @@ Now with **dynamic rainbow gradients**, smooth trailing, and a visually impressi
 #define NUM_LEDS 30
 #define TRIG 25
 #define ECHO 26
+#define MAX_DISTANCE 50
+#define MIN_DISTANCE 2
 
 Adafruit_NeoPixel strip(NUM_LEDS, PIN_LED, NEO_GRB + NEO_KHZ800);
 
 void setup() {
   strip.begin();
   strip.show();
+  strip.setBrightness(100); // ¡Importante para proteger los ojos y los LEDs!
   pinMode(TRIG, OUTPUT);
   pinMode(ECHO, INPUT);
   Serial.begin(115200);
 }
 
-// Measure distance in cm
 long measureDistance() {
   digitalWrite(TRIG, LOW);
   delayMicroseconds(2);
   digitalWrite(TRIG, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG, LOW);
-  long duration = pulseIn(ECHO, HIGH);
+  
+  long duration = pulseIn(ECHO, HIGH, 30000); // Timeout de 30ms
+  if(duration == 0) return -1;
+  
   long distance = duration * 0.034 / 2;
-  return distance;
+  return (distance >= MIN_DISTANCE && distance <= MAX_DISTANCE) ? distance : -1;
 }
 
-// Convert 0-255 value to rainbow color
 uint32_t Wheel(byte pos) {
   pos = 255 - pos;
   if(pos < 85) return strip.Color(255 - pos * 3, 0, pos * 3);
-  if(pos < 170) { pos -= 85; return strip.Color(0, pos * 3, 255 - pos * 3); }
+  if(pos < 170) { 
+    pos -= 85; 
+    return strip.Color(0, pos * 3, 255 - pos * 3); 
+  }
   pos -= 170;
   return strip.Color(pos * 3, 255 - pos * 3, 0);
 }
 
 void loop() {
   long distance = measureDistance();
-  int ledStart = map(distance, 2, 50, 0, NUM_LEDS-1);
-  ledStart = constrain(ledStart, 0, NUM_LEDS-1);
-  waveRainbow(ledStart);
-}
-
-// Rainbow wave with smooth trailing
-void waveRainbow(int startLED) {
-  for(int i = startLED; i < NUM_LEDS; i++) {
-    strip.setPixelColor(i, Wheel((i*256/NUM_LEDS) + millis()/10));
-    if(i > 0) strip.setPixelColor(i-1, Wheel((i*256/NUM_LEDS) + millis()/20));
-    if(i > 1) strip.setPixelColor(i-2, Wheel((i*256/NUM_LEDS) + millis()/30));
+  
+  if(distance != -1) {
+    int ledStart = map(distance, MIN_DISTANCE, MAX_DISTANCE, 0, NUM_LEDS-1);
+    ledStart = constrain(ledStart, 0, NUM_LEDS-1);
+    waveRainbow(ledStart);
+  } else {
+    // Si no hay objeto detectado, apagar todos los LEDs
+    strip.clear();
     strip.show();
-    delay(30);
-    if(i > 3) strip.setPixelColor(i-3, 0); // fade trailing
   }
 }
+
+void waveRainbow(int startLED) {
+  strip.clear(); // Limpiar antes de dibujar nuevo frame
+  
+  for(int i = startLED; i < NUM_LEDS; i++) {
+    // Efecto de cola más suave
+    for(int j = 0; j <= 3; j++) {
+      if(i - j >= 0) {
+        int brightness = 255 - (j * 60); // Disminuir brillo progresivamente
+        uint32_t color = Wheel(((i-j)*256/NUM_LEDS) + millis()/(10 + j*5));
+        strip.setPixelColor(i-j, color);
+      }
+    }
+    
+    strip.show();
+    delay(30);
+  }
+}
+```
+
