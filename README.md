@@ -53,7 +53,7 @@ Adafruit_NeoPixel strip(NUM_LEDS, PIN_LED, NEO_GRB + NEO_KHZ800);
 void setup() {
   strip.begin();
   strip.show();
-  strip.setBrightness(100); // ¡Importante para proteger los ojos y los LEDs!
+  strip.setBrightness(100); // Importante para proteger los ojos y los LEDs!
   pinMode(TRIG, OUTPUT);
   pinMode(ECHO, INPUT);
   Serial.begin(115200);
