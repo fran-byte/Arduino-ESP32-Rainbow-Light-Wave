@@ -1,43 +1,44 @@
-# Onda de Luz Interactiva con ESP32 – Efecto Arcoíris
+# Interactive Rainbow Wave with ESP32
 
-Este proyecto crea una **onda de luz que sigue la mano**, usando un **ESP32**, una tira de LEDs WS2812B y un sensor de ultrasonido HC-SR04.  
-
----
-
-## **Materiales**
-
-- 1 ESP32 (DevKit v1 o similar)  
-- 1 tira de LEDs WS2812B (16–30 LEDs recomendados)  
-- 1 sensor de ultrasonido HC-SR04  
-- Protoboard y cables  
-- Fuente de alimentación 5V para la tira de LEDs  
-- Resistencia de 330Ω (opcional, protege la señal de datos)  
-- Condensador 1000 µF, 6.3V+ (opcional, suaviza alimentación)  
+This project creates a **hand-following light wave**, using an **ESP32**, a WS2812B LED strip, and a **3.3V-compatible ultrasonic sensor (HC-SR04-33)**.  
+Now with **dynamic rainbow gradients**, smooth trailing, and a visually impressive interactive effect.
 
 ---
 
-## **Conexión**
+## **Materials**
 
-### **Tira de LEDs WS2812B**
-| Pin del LED | Conexión |
-|------------|-----------|
-| VCC        | 5V de fuente externa |
-| GND        | GND del ESP32 y fuente externa |
-| DATA IN    | Pin digital del ESP32 (ejemplo: GPIO 18, con resistencia 330Ω opcional) |
+- 1 ESP32 (DevKit v1 or similar)  
+- 1 WS2812B LED strip (16–30 LEDs recommended)  
+- 1 3.3V-compatible ultrasonic sensor (HC-SR04-33)  
+- Breadboard and jumper wires  
+- 5V power supply for the LED strip  
+- 330Ω resistor (optional, protects the data line)  
+- 1000 µF, 6.3V+ capacitor (optional, smooths power supply)  
 
-### **Sensor HC-SR04**
-| Pin  | Conexión |
+---
+
+## **Wiring**
+
+### **WS2812B LED Strip**
+| LED Pin | Connection |
+|---------|-----------|
+| VCC     | 5V from external power supply |
+| GND     | GND of ESP32 and external power |
+| DATA IN | Digital pin on ESP32 (e.g., GPIO 18, optional 330Ω resistor) |
+
+### **HC-SR04-33 Ultrasonic Sensor**
+| Pin  | Connection |
 |------|-----------|
-| VCC  | 5V de fuente externa o VIN del ESP32 |
+| VCC  | 3.3V from ESP32 |
 | GND  | GND |
-| TRIG | Pin digital del ESP32 (ejemplo: GPIO 25) |
-| ECHO | Pin digital del ESP32 con **divisor de voltaje** a 3.3V |
+| TRIG | Digital pin on ESP32 (e.g., GPIO 25) |
+| ECHO | Digital pin on ESP32 (e.g., GPIO 26) |
 
-> ⚠️ Nota: El ECHO del HC-SR04 entrega 5V. Usa un divisor de voltaje o conversor lógico para proteger el ESP32.
+> ⚡ Note: The HC-SR04-33 is **fully compatible with 3.3V**, so you can connect the ECHO pin directly to the ESP32 without any voltage divider.
 
 ---
 
-## **Código de ejemplo con efecto arcoíris**
+## **Example Code with Rainbow Effect**
 
 ```cpp
 #include <Adafruit_NeoPixel.h>
@@ -57,19 +58,19 @@ void setup() {
   Serial.begin(115200);
 }
 
-// Medir distancia en cm
-long medirDistancia() {
+// Measure distance in cm
+long measureDistance() {
   digitalWrite(TRIG, LOW);
   delayMicroseconds(2);
   digitalWrite(TRIG, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG, LOW);
-  long duracion = pulseIn(ECHO, HIGH);
-  long distancia = duracion * 0.034 / 2;
-  return distancia;
+  long duration = pulseIn(ECHO, HIGH);
+  long distance = duration * 0.034 / 2;
+  return distance;
 }
 
-// Convertir valor 0-255 a color arcoíris
+// Convert 0-255 value to rainbow color
 uint32_t Wheel(byte pos) {
   pos = 255 - pos;
   if(pos < 85) return strip.Color(255 - pos * 3, 0, pos * 3);
@@ -79,13 +80,13 @@ uint32_t Wheel(byte pos) {
 }
 
 void loop() {
-  long distancia = medirDistancia();
-  int ledInicio = map(distancia, 2, 50, 0, NUM_LEDS-1);
-  ledInicio = constrain(ledInicio, 0, NUM_LEDS-1);
-  waveRainbow(ledInicio);
+  long distance = measureDistance();
+  int ledStart = map(distance, 2, 50, 0, NUM_LEDS-1);
+  ledStart = constrain(ledStart, 0, NUM_LEDS-1);
+  waveRainbow(ledStart);
 }
 
-// Onda arcoíris con rastro suave
+// Rainbow wave with smooth trailing
 void waveRainbow(int startLED) {
   for(int i = startLED; i < NUM_LEDS; i++) {
     strip.setPixelColor(i, Wheel((i*256/NUM_LEDS) + millis()/10));
@@ -93,6 +94,6 @@ void waveRainbow(int startLED) {
     if(i > 1) strip.setPixelColor(i-2, Wheel((i*256/NUM_LEDS) + millis()/30));
     strip.show();
     delay(30);
-    if(i > 3) strip.setPixelColor(i-3, 0); // rastro se desvanece
+    if(i > 3) strip.setPixelColor(i-3, 0); // fade trailing
   }
 }
