@@ -1,7 +1,6 @@
 # Onda de Luz Interactiva con ESP32 – Efecto Arcoíris
 
 Este proyecto crea una **onda de luz que sigue la mano**, usando un **ESP32**, una tira de LEDs WS2812B y un sensor de ultrasonido HC-SR04.  
-Con **gradientes arcoíris dinámicos**, rastro largo y suave, ideal para clubs de makers que buscan un efecto realmente impresionante.
 
 ---
 
